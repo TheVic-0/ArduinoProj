@@ -30,6 +30,7 @@ void loop() {
   delay(del_y);
   tlRed();
   delay(del_r);
+  PGwarn();
 
 }
   
@@ -59,4 +60,16 @@ void tlRed()
   digitalWrite(R, HIGH);
   digitalWrite(PG, HIGH);
   digitalWrite(PR, LOW);
+}
+
+void PGwarn()
+{
+  //Green pedestrian light blinks to signal that it is about to become red
+  for(int i = 0; i <= 3; i++)
+  {
+    digitalWrite(PG, HIGH);
+    delay(150);
+    digitalWrite(PG, LOW);
+    delay(150);
+  }
 }
