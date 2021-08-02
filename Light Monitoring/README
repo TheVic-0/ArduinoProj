@@ -2,3 +2,5 @@ This code is meant to be a tryout of a light monitoring system in which multiple
 Another option would be to use LEDs as indicators to respond to the LDRs, becoming Red when the lighting is low or Green when the lighting is bright
 
 Both the LCD or the LED Indicators can be switched On/Off independently by the user
+
+![image](https://user-images.githubusercontent.com/37463626/127794571-d0798837-fa2e-48fe-a09e-e730a96cc7a3.png)
