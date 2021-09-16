@@ -1,6 +1,9 @@
 #include <Adafruit_NeoPixel.h>
 #include <Servo.h>
 
+//LDR Sensor---------------------------------------------------------------------------------------------------------------
+int ldr = A0; //LDR pin
+
 //pir sensor---------------------------------------------------------------------------------------------------------------
 int PIR = 13; //pin
 int readPIR = 0; //store values of PIR readings
@@ -17,6 +20,7 @@ int LED5 = 8; //pin
 // if the two sensors get obstructed it is a person, if only the sensor at a lower position gets obstructed it is the dog
 //Sensor 1 would be positioned at chest height
 //Sensor 2 would be positioned at shin/knee/tigh height
+//Sensor 3 would be positioned outside the door, either at a low position such as Sensor 2 or above the pet door/flap, pointing down
 
 int USS1 = 7; //pin for higher sensor1
 int USS2 = 6; //pin for lower sensor2
@@ -62,27 +66,35 @@ int b = 0;
 //other variables--------------------------------------------------------------------------------------------
 bool open = false; // door state
 bool calibrated = false; // servo calibration to avoid random movement
+bool IsDark = false; //determine if it is dark outside
 
 void setup()
 {
   Serial.begin(9600);
   
-  // Initialize NeoPixel library
+  // Sets up NeoPixel library--------------------------------------------
   pixels.begin();
   
+  // Sets up LEDs--------------------------------------------------------
   pinMode(LED1, OUTPUT); // POWER ON
   pinMode(LED2, OUTPUT); // ON when NEOPIXEL strip and door open
   pinMode(LED3, OUTPUT); // ON when PIR active
   pinMode(LED4, OUTPUT); // ON when sensor 1 active
   pinMode(LED5, OUTPUT); // ON when sensor 2 active
-  
+
+  //Sets up PIR---------------------------------------------------------
   pinMode(PIR, INPUT);
 
+  //Sets up LDR---------------------------------------------------------
+  pinMode(ldr, INPUT);
+
+  //Sets up servo-------------------------------------------------------
   myServo.attach(servo, 544, 2500);
+
 }
 
 void loop()
-{
+{  
   readings();
   // resets LEDs
   digitalWrite(LED1, HIGH); //POWER LED always ON
@@ -104,6 +116,8 @@ void loop()
     open = false;
   }
 
+  IsDarkCheck();
+  
   readings();
   
   handlePIR(); // checks for movement
@@ -123,7 +137,12 @@ void loop()
       
       cm3 = 0.01723 * readUltrasonicDistance(3, 3); // activates exterior sensor 3
       OpenDoorSequence();
-      NeoON();
+      
+      IsDarkCheck();
+      if (IsDark == true) // only turns NeoPixels on if dark
+      {
+        NeoON();
+      }
       readings();
 
       delay(5000); // some time for dog to exit
@@ -141,8 +160,11 @@ void loop()
           Serial.print("-------------DOGGO IS BACK HOME-------------\n");
           delay(10000);
           CloseDoorSequence();
-          delay(2000);
-          NeoOFF();
+          if(IsDark == true)
+          {
+            delay(2000);
+            NeoOFF();
+          }
         }
       }
       
@@ -203,7 +225,7 @@ void NeoON()
     
     // This sends the updated pixel color to the hardware.
     pixels.show();
-    delay(8.4);// takes approximately half a second to fully execute
+    delay(16.7);// takes approximately a second to fully execute
   }
 }
 
@@ -216,7 +238,7 @@ void NeoOFF()
     // clears NEO
     pixels.setPixelColor(i, pixels.Color(0, 0, 0));
     pixels.show();
-    delay(8.4);
+    delay(16.7);
   }
 }
 
@@ -230,8 +252,8 @@ void OpenDoorSequence()
   {
     // tell servo to go to position in variable 'pos'
     myServo.write(pos);
-    // wait 10 ms for servo to reach the position
-    delay(10); // Wait for 15 millisecond(s)
+    // wait 15 ms for servo to reach the position
+    delay(15); // Wait for 15 millisecond(s)
   }
 }
 
@@ -245,8 +267,8 @@ void CloseDoorSequence()
     {
       // tell servo to go to position in variable 'pos'
       myServo.write(pos);
-      // wait 10 ms for servo to reach the position
-      delay(10); // Wait for 15 millisecond(s)
+      // wait 15 ms for servo to reach the position
+      delay(15); // Wait for 15 millisecond(s)
     }
   }
   open = false;
@@ -272,6 +294,19 @@ void servoCalibrationSequence()
   calibrated = true;
 }
 
+void IsDarkCheck() //checks if lights are on or if there is daylight
+{
+  ldr = analogRead(A0);
+  if(ldr < 300)
+  {
+    IsDark = true;
+  }
+  else
+  {
+    IsDark = false;
+  }
+}
+
 void readings()
 {
   Serial.print("CM1: ");
@@ -281,14 +316,15 @@ void readings()
   Serial.print(cm2);
   Serial.print("   ");
   Serial.print("CM3: ");
-  Serial.print(cm3);
-  Serial.print("\n");
+  Serial.println(cm3);
 
 
   Serial.print("readPIR: ");
   Serial.print(digitalRead(PIR));
-  Serial.print("  ");
+  Serial.print("   ");
   Serial.print("pos: ");
   Serial.print(pos);
-  Serial.print("\n");
+  Serial.print("   ");
+  Serial.print("LDR: ");
+  Serial.println(ldr);
 }
