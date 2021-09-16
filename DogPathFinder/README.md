@@ -26,7 +26,7 @@ The general idea is to automate events in which the dog can be let out without t
   <li>5X 330Ω Resistors</li>
   <li>1X LDR sensor</li>
   <li>1X 10kΩ Resistor</li>
-  <li>1X Protoboard</li>
+  <li>2X Protoboard</li>
 </ul>
 
 ### Apps and Online Services
