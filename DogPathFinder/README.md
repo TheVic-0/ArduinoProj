@@ -37,4 +37,4 @@ The general idea is to automate events in which the dog can be let out without t
 
 ### Circuit
 
-![image](https://user-images.githubusercontent.com/37463626/133572371-173de4ac-f95b-44eb-b276-b0feba793a67.PNG)
+![image](https://user-images.githubusercontent.com/37463626/133677312-fe21c80e-8e5a-4cb6-950c-d639b63a8685.PNG)
