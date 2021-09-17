@@ -8,10 +8,16 @@ so when the dog is detected, the servo will open the pet door/flap automatically
 Additionally the program also lights up an NeoPixel LED strip to assist the dog finding its path to the grass and back, closing the pet doot/flap a few seconds after
 the dog crosses it and turns off all the NeoPixels in reverse order for a better effect
 
+#
+#### Update
+An LDR sensor was added so that the LEDs from the NeoPixel strip would not be turned on if there is enough lighting, that way the program could run 24/7 without wasting time and electricity by turning on LEDs during the day or when the lights are on
+
+#
 ### Objective
 
 The general idea is to automate events in which the dog can be let out without the need of human interaction and also assist the dog with finding the correct path by using LEDs
 
+#
 ### Components and Supplies
 
 <ul>
