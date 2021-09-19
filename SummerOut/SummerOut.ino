@@ -190,3 +190,12 @@ void CloseDoorSequence()
   }
   DoorStat = false;
 }
+
+void readings()
+{
+  Serial.print("Temperature: ");
+  Serial.println(celsius);
+
+  Serial.print("Door Status: ");
+  Serial.println(DoorStat);
+}
