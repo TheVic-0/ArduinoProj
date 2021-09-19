@@ -24,7 +24,9 @@ bool calibrated = false;
 int tmp = A0;
 int celsius = 0;
 
-
+//Other
+bool prev;
+bool current;
 
 void setup()
 {
@@ -55,11 +57,11 @@ void loop()
   delay(500);
   
   GetTemp();
+  TempResponse();
   PrintToLCD();
   Serial.println(celsius);
-  TempResponse();
 
-  delay(1000);
+  delay(300000); // Delays 5 minutes since temperature changes are usually not very fast
 }
 
 void GetTemp()
@@ -126,7 +128,7 @@ void GetDoorStat()
   }
   else if (DoorStat == true)
   {
-    lcd.print("Open");
+    lcd.print("Open  ");
   }
   else
   {
