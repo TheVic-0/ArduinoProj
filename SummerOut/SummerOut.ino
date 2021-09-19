@@ -5,17 +5,17 @@
 LiquidCrystal lcd = LiquidCrystal(2, 3, 4, 5, 6, 7);
 
 //outside temp LED  pins
-int LEDt1 = 8;
-int LEDt2 = 9;
-int LEDt3 = 10;
+int LEDt1 = 8; // Temp High - RED
+int LEDt2 = 9; // Temp Medium - YELLOW
+int LEDt3 = 10; // Temp Low - GREEN
 
 //Door/window status LED  pins
-int LEDs1 = 11;
-int LEDs2 = 12;
+int LEDs1 = 11; // door closed - RED
+int LEDs2 = 12; // door open - GREEN
 
-// Servo
+// Servo-------------------------------------------------------------
 int servo = 13;
-int pos;
+int pos = 0;
 Servo MyServo;
 bool DoorStat = false;
 bool calibrated = false;
@@ -52,22 +52,69 @@ void setup()
 void loop()
 {
   servoCalibrationSequence();
+  delay(500);
+  
+  GetTemp();
+  PrintToLCD();
+  Serial.println(celsius);
+  TempResponse();
+
+  delay(1000);
 }
 
 void GetTemp()
 {
   celsius = map(((analogRead(tmp) - 20) * 3.04), 0, 1023, -40, 125);
+  if(celsius > 30 || celsius < 10)
+  {
+    digitalWrite(LEDt1, HIGH); // Temp too high or low, RED
+    // turn off other temp LEDs
+    digitalWrite(LEDt2, LOW);
+    digitalWrite(LEDt3, LOW);
+  }
+  else if(celsius < 30 && celsius > 26)
+  {
+    digitalWrite(LEDt2, HIGH); // Temp Moderate, YELLOW
+    digitalWrite(LEDt1, LOW);
+    digitalWrite(LEDt3, LOW);
+  }
+  else if(celsius < 26 && celsius > 10)
+  {
+    digitalWrite(LEDt3, HIGH); // Temp GOOD, GREEN
+    digitalWrite(LEDt1, LOW);
+    digitalWrite(LEDt2, LOW);
+  }
+
+  
+}
+
+void TempResponse()
+{
+  if(celsius > 33 || celsius < 10) // too cold or too hot
+  {
+    if(DoorStat == true) // if door is open
+    {
+      CloseDoorSequence();
+    }
+  }
+  else if (celsius < 29 && celsius > 10)
+  {
+    if(DoorStat == false) // if door closed
+    {
+      OpenDoorSequence();
+    }
+  }
 }
 
 void PrintToLCD()
 {
   // Set the cursor on the third column and the first row
   lcd.setCursor(2, 0);
-  lcd.print("Temp Outside: ");
-  lcd.println(celsius);
+  lcd.print("Temp: ");
+  lcd.print(celsius);
   // Set the cursor on the third column and the second row:
   lcd.setCursor(2, 1);
-  lcd.print("Door/Window Status: "); 
+  lcd.print("D stat: "); 
   GetDoorStat();
 }
 
@@ -83,16 +130,16 @@ void GetDoorStat()
   }
   else
   {
-    lcd.print("Door Status Unknown");
+    lcd.print("Stat Unknown");
     lcd.clear();
   }
 }
 
 void servoCalibrationSequence()
 {
-  Serial.print("----THE SERVO IS BEING CALIBRATED----\n");
   if(calibrated == false)
   {
+    Serial.print("----THE SERVO IS BEING CALIBRATED----\n");
     for (pos = 0; pos < 30; pos ++) 
     {
       // tell servo to go to position in variable 'pos'
@@ -107,16 +154,17 @@ void servoCalibrationSequence()
       // wait 10 ms for servo to reach the position
       delay(10); // Wait for 10 millisecond(s)
     }
-    calibrated = true; 
+    calibrated = true;
   }
 }
 
 void OpenDoorSequence()
 {
-  digitalWrite(LEDs2, HIGH);
-  DoorStat = true; //indicates door is open
+  digitalWrite(LEDs2, HIGH); // Open door LED
+  digitalWrite(LEDs1, LOW);
+  DoorStat = true;
   // sweep the servo from 0 to 180 degrees in steps of 1 degrees
-  // opens up pet door/pet flap
+  // opens up pet door/window
   for (pos = 0; pos <= 140; pos ++) 
   {
     // tell servo to go to position in variable 'pos'
@@ -124,4 +172,21 @@ void OpenDoorSequence()
     // wait 15 ms for servo to reach the position
     delay(15); // Wait for 15 millisecond(s)
   }
+}
+
+void CloseDoorSequence()
+{
+  digitalWrite(LEDs1, HIGH); // Closed Door LED
+  digitalWrite(LEDs2, LOW);
+  //closes door/window
+  if(pos > 0)
+  {
+    for (pos = 140; pos > 0; pos --) 
+    {
+      MyServo.write(pos);
+      // wait 15 ms for servo to reach the position
+      delay(15); // Wait for 15 millisecond(s)
+    }
+  }
+  DoorStat = false;
 }
