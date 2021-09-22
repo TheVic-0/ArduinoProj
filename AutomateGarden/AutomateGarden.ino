@@ -40,7 +40,9 @@ int RainA = A1; // Analog pin of Rain Sensor
 int RainAnalogVal;
 int RainDigitalVal;
 int ThresholdValue = 500;
-bool HasRained;
+int HasRainedDay = 0;
+int HasRainedMonth = 0;
+bool HasRained = false;
 
 // other variables ----------------------------------------------------------------
 int milli = 0; // milliseconds for watering calculation  
@@ -134,11 +136,14 @@ void GetSwitchState()
 
 void GetRainStat()
 {
+  DateTime now = rtc.now();
   RainDigitalVal = digitalRead(RainD);
   if(digitalRead(RainD) == LOW) // Output goes down when it rains
   {
     Serial.println("Digital value : wet");
-    // LED
+    HasRained = true;
+    HasRainedDay = now.day();
+    HasRainedMonth = now.month();
         
     delay(10); 
   }
@@ -146,6 +151,12 @@ void GetRainStat()
   {
     Serial.println("Digital value : dry");
     delay(10); 
+  }
+  // zeroes variables in the next day after rain
+  if(HasRainedDay < now.day() || HasRainedMonth < now.month())
+  {
+    HasRainedDay = 0;
+    HasRained = false;
   }
   /*
   //Another way of doing it using the Analog pin
@@ -196,7 +207,7 @@ void CalcWateringTime()
 
 void WaterPlantsNormal()
 {
-  if(SwitchOn == true)
+  if(SwitchOn == true && HasRained == false)
   {
     // read current moisture
     int moisture = analogRead(soilSensor);
@@ -225,11 +236,19 @@ void PrintToLCD()
 {
   // Set the cursor on the third column and the first row
   lcd.setCursor(2, 0);
-  lcd.print("TEST ");
-  lcd.print("TEST");
+  lcd.print("Temp: ");
+  lcd.print(T);
   // Set the cursor on the third column and the second row:
   lcd.setCursor(2, 1);
-  lcd.print("TEST"); 
+  lcd.print("Mode: ");
+  if(SwitchOn == true)
+  {
+    lcd.print("Regular");
+  }
+  else if(SwitchOn == false)
+  {
+    lcd.print("Drip");
+  }
 }
 
 void GetSerialDateTime()
@@ -259,7 +278,7 @@ void GetSerialDateTime()
 void Drip_ishWatering()
 {
   DateTime now = rtc.now();
-  if(SwitchOn == false)
+  if(SwitchOn == false && HasRained == false)
   {
     // resets variables when month goes by
     if(DripLastMonth < now.month())
