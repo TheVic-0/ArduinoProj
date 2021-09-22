@@ -247,7 +247,7 @@ void PrintToLCD()
   }
   else if(SwitchOn == false)
   {
-    lcd.print("Drip");
+    lcd.print("Drip   ");
   }
 }
 
