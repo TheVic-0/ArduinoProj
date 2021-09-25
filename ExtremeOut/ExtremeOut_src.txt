@@ -9,6 +9,14 @@ int LEDt1 = 8; // Temp High - RED
 int LEDt2 = 9; // Temp Medium - YELLOW
 int LEDt3 = 10; // Temp Low - GREEN
 
+// Rain Sensor FC-37/YL-83/HM-RD ---------------------------------------------------
+int RainD = 1; // Digital pin of Rain Sensor -- It is fine to use Pin 1 as long as you dont use the Serial library
+int RainA = A2; // Analog pin of Rain Sensor
+int RainAnalogVal;
+int RainDigitalVal;
+int ThresholdValue = 500;
+bool IsRaining = false;
+
 //Door/window status LED  pins
 int LEDs1 = 11; // door closed - RED
 int LEDs2 = 12; // door open - GREEN
@@ -57,11 +65,15 @@ void loop()
   delay(500);
   
   GetTemp();
+  GetRainStat();
   TempResponse();
   PrintToLCD();
   Serial.println(celsius);
 
-  delay(300000); // Delays 5 minutes since temperature changes are usually not very fast
+  if(IsRaining == false)
+  {
+    delay(300000); // Delays 5 minutes since temperature changes are usually not very fast
+  }
 }
 
 void GetTemp()
@@ -92,7 +104,7 @@ void GetTemp()
 
 void TempResponse()
 {
-  if(celsius > 33 || celsius < 10) // too cold or too hot
+  if((celsius > 33 || celsius < 10)||(IsRaining == true)) // too cold or too hot
   {
     if(DoorStat == true) // if door is open
     {
@@ -191,6 +203,24 @@ void CloseDoorSequence()
     }
   }
   DoorStat = false;
+}
+
+void GetRainStat()
+{
+  RainDigitalVal = digitalRead(RainD);
+  if(digitalRead(RainD) == LOW) // Output goes down when it rains
+  {
+    Serial.println("Digital value : wet");
+    IsRaining = true;
+        
+    delay(10); 
+  }
+  else
+  {
+    Serial.println("Digital value : dry");
+    delay(10); 
+    IsRaining = false;
+  }
 }
 
 void readings()
